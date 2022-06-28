@@ -1,4 +1,5 @@
 import type { NextPage } from "next";
+import Link from "next/link";
 import Head from "next/head";
 import Image from "next/image";
 import styles from "../styles/Home.module.css";
@@ -17,6 +18,17 @@ const Home: NextPage = () => {
           Learn <a href="https://www.khronos.org/webgl/">WebGL!</a>
         </h1>
 
+        <ul>
+          {["001", "002", "003"].map((num) => (
+            <ol key={num}>
+              <h1>
+                <Link href={`/${num}`}>
+                  <a>{num}</a>
+                </Link>
+              </h1>
+            </ol>
+          ))}
+        </ul>
         {/* <p className={styles.description}>
           Get started by editing{" "}
           <code className={styles.code}>pages/index.tsx</code>
