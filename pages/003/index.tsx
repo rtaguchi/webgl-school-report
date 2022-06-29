@@ -324,6 +324,10 @@ class Helicopter {
   target: any;
   lightHelper: any;
   waitCounter: any;
+  light1: any;
+  light2: any;
+  lightShift: any;
+  lightShiftDirection: any;
 
   static get MATERIAL_PARAM() {
     return {
@@ -339,6 +343,8 @@ class Helicopter {
     this.finSpeed = 0;
     this.waitCounter = 0;
     this.isRotation = false;
+    this.lightShift = 0;
+    this.lightShiftDirection = true;
 
     const bodyGeo = new THREE.CapsuleGeometry(0.8, 1.8, 4.0, 8.0);
     const bodyMate = new THREE.MeshPhongMaterial(Helicopter.MATERIAL_PARAM);
@@ -430,18 +436,18 @@ class Helicopter {
     this.fin.add(boxMesh2);
     this.fin.add(finMesh);
 
-    const light1 = new THREE.SpotLight(0xff0000, 1, 10, Math.PI / 5, 0.2);
-    light1.position.z = 1.5;
-    light1.position.x = -0.5;
-    light1.target.position.z = 4;
-    light1.target.position.x = -0.5;
-    light1.castShadow = true;
-    const light2 = new THREE.SpotLight(0xff0000, 1, 10, Math.PI / 5, 0.2);
-    light2.position.z = 1.5;
-    light2.position.x = 0.5;
-    light2.castShadow = true;
-    light2.target.position.z = 4;
-    light2.target.position.x = 0.5;
+    this.light1 = new THREE.SpotLight(0xff0000, 1, 10, Math.PI / 5, 0.2);
+    this.light1.position.z = 1.5;
+    this.light1.position.x = -0.5;
+    this.light1.target.position.z = 4;
+    this.light1.target.position.x = -0.5;
+    this.light1.castShadow = true;
+    this.light2 = new THREE.SpotLight(0xff0000, 1, 10, Math.PI / 5, 0.2);
+    this.light2.position.z = 1.5;
+    this.light2.position.x = 0.5;
+    this.light2.castShadow = true;
+    this.light2.target.position.z = 4;
+    this.light2.target.position.x = 0.5;
 
     // this.lightHelper = new THREE.SpotLightHelper(light1);
     // upperScene.add(this.lightHelper);
@@ -449,10 +455,10 @@ class Helicopter {
     this.heli = new THREE.Group();
     this.heli.add(body);
     this.heli.add(this.fin);
-    this.heli.add(light1);
-    this.heli.add(light2);
-    this.heli.add(light1.target);
-    this.heli.add(light2.target);
+    this.heli.add(this.light1);
+    this.heli.add(this.light2);
+    this.heli.add(this.light1.target);
+    this.heli.add(this.light2.target);
     this.flyingHeight = App3.EARTH_SIZE;
     this.heliAngle = 0;
 
@@ -489,6 +495,18 @@ class Helicopter {
       this.heli.position.clone().normalize(),
       destVec
     );
+  }
+
+  moveLight() {
+    this.light1.target.position.x = -0.5 + this.lightShift;
+    this.light2.target.position.x = 0.5 + this.lightShift;
+
+    if (this.lightShift > 1) {
+      this.lightShiftDirection = false;
+    } else if (this.lightShift < -1) {
+      this.lightShiftDirection = true;
+    }
+    this.lightShift += this.lightShiftDirection ? 0.05 : -0.05;
   }
 
   goForward() {
@@ -564,6 +582,7 @@ class Helicopter {
           this.flyingHeight += 0.01;
         } else {
           this.goForward();
+          this.moveLight();
         }
         const positionVector = this.heli.position.clone().normalize();
         this.heli.position.set(
