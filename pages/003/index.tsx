@@ -196,7 +196,7 @@ class App3 {
     const earthMaterial = new THREE.MeshPhongMaterial({
       color: 0xffffff, // マテリアルの基本色
       transparent: true,
-      opacity: 0.8,
+      opacity: 0.9,
     });
     // earthMaterial.map = this.earthTexture;
     this.earth = new THREE.Mesh(sphereGeometry, earthMaterial);
@@ -229,7 +229,7 @@ class App3 {
       this.helicopter.rotationHeli();
     }
 
-    this.helicopter.updateLightHelper();
+    // this.helicopter.updateLightHelper();
 
     // コントロールを更新
     this.controls.update();
@@ -423,33 +423,38 @@ class Helicopter {
     body.add(poleFL);
     body.add(poleRL);
     body.position.y = 1.0;
+    body.rotation.y = (Math.PI * 3) / 2;
 
     this.fin = new THREE.Group();
     this.fin.add(boxMesh1);
     this.fin.add(boxMesh2);
     this.fin.add(finMesh);
 
-    const light1 = new THREE.SpotLight(0xff0000, 1, 5, Math.PI / 4, 0.4);
-    light1.position.x = 3;
-    light1.position.z = -0.5;
+    const light1 = new THREE.SpotLight(0xff0000, 1, 10, Math.PI / 5, 0.2);
+    light1.position.z = 1.5;
+    light1.position.x = -0.5;
+    light1.target.position.z = 4;
+    light1.target.position.x = -0.5;
     light1.castShadow = true;
-    const light2 = new THREE.SpotLight(0xff0000, 1, 5, Math.PI / 4, 0.4);
-    light2.position.x = 3;
-    light2.position.z = 0.5;
+    const light2 = new THREE.SpotLight(0xff0000, 1, 10, Math.PI / 5, 0.2);
+    light2.position.z = 1.5;
+    light2.position.x = 0.5;
     light2.castShadow = true;
+    light2.target.position.z = 4;
+    light2.target.position.x = 0.5;
 
-    this.lightHelper = new THREE.SpotLightHelper(light1);
-    upperScene.add(this.lightHelper);
+    // this.lightHelper = new THREE.SpotLightHelper(light1);
+    // upperScene.add(this.lightHelper);
 
     this.heli = new THREE.Group();
     this.heli.add(body);
     this.heli.add(this.fin);
     this.heli.add(light1);
     this.heli.add(light2);
+    this.heli.add(light1.target);
+    this.heli.add(light2.target);
     this.flyingHeight = App3.EARTH_SIZE;
     this.heliAngle = 0;
-
-    // this.heli.rotation.y = Math.PI;
 
     const initialVector = new THREE.Vector3(0, 1, 0).normalize();
 
@@ -474,9 +479,9 @@ class Helicopter {
     );
   }
 
-  updateLightHelper() {
-    this.lightHelper.update();
-  }
+  // updateLightHelper() {
+  //   this.lightHelper.update();
+  // }
 
   setDestination(destVec: any) {
     this.destination = destVec;
@@ -505,6 +510,17 @@ class Helicopter {
 
     const qtn2 = getQuaternion(posVec, pos.clone().normalize());
     this.heli.quaternion.premultiply(qtn2);
+
+    this.heli.up.copy(posVec.clone().normalize());
+    const lookVec = new THREE.Vector3().subVectors(posVec, destVec);
+
+    const qtn3 = new THREE.Quaternion().setFromAxisAngle(axis, 0.05);
+    // ベクトルを回転させる
+    const pos3 = posVec
+      .clone()
+      .applyQuaternion(qtn3)
+      .multiplyScalar(App3.EARTH_SIZE + App3.SKY_HEIGHT);
+    this.heli.lookAt(pos3);
   }
 
   rotationFin() {
