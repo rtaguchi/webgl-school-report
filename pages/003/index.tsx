@@ -225,10 +225,6 @@ class App3 {
     // heli.position.x += 0.1;
     const heliPosition = heli.position.clone();
 
-    if (this.isDown) {
-      this.helicopter.rotationHeli();
-    }
-
     // this.helicopter.updateLightHelper();
 
     // コントロールを更新
@@ -318,7 +314,6 @@ class Helicopter {
   xzAngle: any;
   xyAngle: any;
   flyingHeight: any;
-  isRotation: any;
   departure: any;
   destination: any;
   target: any;
@@ -328,6 +323,9 @@ class Helicopter {
   light2: any;
   lightShift: any;
   lightShiftDirection: any;
+  destDirection: any;
+  straght: any;
+  rotateAxis: any;
 
   static get MATERIAL_PARAM() {
     return {
@@ -342,9 +340,9 @@ class Helicopter {
   constructor(upperScene: any) {
     this.finSpeed = 0;
     this.waitCounter = 0;
-    this.isRotation = false;
     this.lightShift = 0;
     this.lightShiftDirection = true;
+    this.straght = false;
 
     const bodyGeo = new THREE.CapsuleGeometry(0.8, 1.8, 4.0, 8.0);
     const bodyMate = new THREE.MeshPhongMaterial(Helicopter.MATERIAL_PARAM);
@@ -495,6 +493,20 @@ class Helicopter {
       this.heli.position.clone().normalize(),
       destVec
     );
+    const posVec = this.heli.position.clone().normalize();
+    // // ２つのベクトルの回転軸
+    const axis = posVec.clone().cross(destVec);
+    axis.normalize();
+    // axisを軸としたクォータニオンを生成
+    const qtn = new THREE.Quaternion().setFromAxisAngle(axis, 0.001);
+    // ベクトルを回転させる
+    const nextVec = posVec.clone().applyQuaternion(qtn).normalize();
+
+    this.destDirection = nextVec.clone().normalize().sub(posVec).normalize();
+    this.straght = false;
+
+    const z = this.heli.getWorldDirection(new THREE.Vector3());
+    this.rotateAxis = this.destDirection.clone().cross(z);
   }
 
   moveLight() {
@@ -532,13 +544,20 @@ class Helicopter {
     this.heli.up.copy(posVec.clone().normalize());
     const lookVec = new THREE.Vector3().subVectors(posVec, destVec);
 
-    const qtn3 = new THREE.Quaternion().setFromAxisAngle(axis, 0.05);
+    const qtn3 = new THREE.Quaternion().setFromAxisAngle(axis, 0.01);
     // ベクトルを回転させる
     const pos3 = posVec
       .clone()
       .applyQuaternion(qtn3)
       .multiplyScalar(App3.EARTH_SIZE + App3.SKY_HEIGHT);
     this.heli.lookAt(pos3);
+
+    const muki = pos3.clone().normalize().sub(posVec).normalize();
+
+    const z = this.heli.getWorldDirection(new THREE.Vector3());
+    const cos = muki.clone().normalize().dot(z);
+    const radians = Math.acos(cos);
+    console.log(radians);
   }
 
   rotationFin() {
@@ -546,6 +565,12 @@ class Helicopter {
     const posVec = this.heli.position.clone().normalize();
     const destVec = this.destination.clone().normalize();
     const angle = posVec.angleTo(destVec);
+
+    // 目的地と機体の向きのなす角度
+    const z = this.heli.getWorldDirection(new THREE.Vector3());
+    const cos = this.destDirection.clone().normalize().dot(z);
+    console.log(cos);
+    const radians = Math.acos(cos);
 
     if (angle < 0.01) {
       if (this.flyingHeight > App3.EARTH_SIZE) {
@@ -581,8 +606,14 @@ class Helicopter {
         if (this.flyingHeight < App3.EARTH_SIZE + App3.SKY_HEIGHT) {
           this.flyingHeight += 0.01;
         } else {
-          this.goForward();
-          this.moveLight();
+          // console.log(radians);
+          if (radians < 0.1 || this.straght) {
+            this.straght = true;
+            this.goForward();
+            this.moveLight();
+          } else {
+            this.rotationHeli(this.destDirection, z);
+          }
         }
         const positionVector = this.heli.position.clone().normalize();
         this.heli.position.set(
@@ -594,22 +625,16 @@ class Helicopter {
     }
 
     this.fin.rotation.y -= this.finSpeed;
-
-    if (this.isRotation) {
-      // ベクトルとラジアンからクォータニオンを定義
-      const qtn = new THREE.Quaternion().setFromAxisAngle(
-        this.heli.position.clone().normalize(),
-        0.005
-      );
-      // ヘリの現在のクォータニオンに乗算する
-      this.heli.quaternion.premultiply(qtn);
-
-      console.log(this.heli.rotation);
-    }
   }
 
-  rotationHeli() {
-    this.isRotation = !this.isRotation;
+  rotationHeli(dest: any, z: any) {
+    // ベクトルとラジアンからクォータニオンを定義
+    const qtn = new THREE.Quaternion().setFromAxisAngle(
+      this.rotateAxis,
+      -0.005
+    );
+    // ヘリの現在のクォータニオンに乗算する
+    this.heli.quaternion.premultiply(qtn);
   }
 
   returnHeli() {
