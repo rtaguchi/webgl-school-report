@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import type { NextPage } from "next";
 
-import { App } from "./script.js";
+import { App } from "../../lib/005/script.js";
 
 const Page005: NextPage = () => {
   // 制御クラスのインスタンスを生成
