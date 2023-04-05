@@ -19,7 +19,7 @@ const Home: NextPage = () => {
         </h1>
 
         <ul>
-          {["001", "002", "003"].map((num) => (
+          {["001", "002", "003", "004", "005"].map((num) => (
             <ol key={num}>
               <h1>
                 <Link href={`/${num}`}>
