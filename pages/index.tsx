@@ -19,15 +19,17 @@ const Home: NextPage = () => {
         </h1>
 
         <ul>
-          {["001", "002", "003", "004", "005"].map((num) => (
-            <ol key={num}>
-              <h1>
-                <Link href={`/${num}`}>
-                  <a>{num}</a>
-                </Link>
-              </h1>
-            </ol>
-          ))}
+          {["001", "002", "003", "004", "005", "006", "007", "008"].map(
+            (num) => (
+              <ol key={num}>
+                <h1>
+                  <Link href={`/${num}`}>
+                    <a>{num}</a>
+                  </Link>
+                </h1>
+              </ol>
+            )
+          )}
         </ul>
         {/* <p className={styles.description}>
           Get started by editing{" "}
