@@ -31,6 +31,7 @@ const Page008: NextPage = () => {
         max: 2.0,
         value: 1.0,
       })
+      // @ts-ignore
       .on("change", (v) => {
         appRef.current.setTimeSpeed(v.value);
       });
@@ -43,6 +44,7 @@ const Page008: NextPage = () => {
         max: 1.0,
         value: 0.5,
       })
+      // @ts-ignore
       .on("change", (v) => {
         appRef.current.setAlpha(v.value);
       });

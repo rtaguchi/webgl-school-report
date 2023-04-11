@@ -34,6 +34,7 @@ const Page007: NextPage = () => {
         max: 1.0,
         value: 0.5,
       })
+      // @ts-ignore
       .on("change", (v: any) => {
         appRef.current.setRatio(v.value);
       });
